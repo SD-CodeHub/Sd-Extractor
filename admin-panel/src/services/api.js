@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Backend base URL. Override per-environment with VITE_API_URL (set in Vercel
+// project settings); falls back to the deployed license server.
+const API_URL = import.meta.env.VITE_API_URL || 'https://sd-extractor.vercel.app';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: API_URL,
 });
 
 // Attach the logged-in user's JWT (if any) to every request.

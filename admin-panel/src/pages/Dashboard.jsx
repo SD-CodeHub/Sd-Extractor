@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMembers, addMember, toggleStatus, deleteMember } from '../services/api';
+import { getMembers, addMember, toggleStatus, deleteMember, clearAdminSession } from '../services/api';
 import toast, { Toaster } from 'react-hot-toast';
 import { 
   FiGrid, FiUsers, FiUserPlus, FiSearch, 
@@ -12,7 +12,7 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [members, setMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', mobile: '', plan: 'monthly' });
+  const [form, setForm] = useState({ name: '', email: '', mobile: '', plan: 'monthly', password: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ export default function AdminPanel() {
   };
 
   const handleLogout = () => {
-    // Clear any local storage/tokens here if you have them
+    clearAdminSession();
     toast.success('Logged out successfully');
     navigate('/login');
   };
@@ -73,7 +73,7 @@ export default function AdminPanel() {
     );
 
     // Reset form and refresh list
-    setForm({ name: '', email: '', mobile: '', plan: 'monthly' });
+    setForm({ name: '', email: '', mobile: '', plan: 'monthly', password: '' });
     fetchMembers();
   } catch (err) {
     toast.error(err.response?.data?.error || 'Failed to add member');
@@ -102,8 +102,8 @@ export default function AdminPanel() {
       {/* --- SIDEBAR --- */}
       <aside className="w-72 bg-slate-900 text-white flex flex-col sticky top-0 h-screen">
         <div className="p-8 text-xl font-black tracking-tighter border-b border-slate-800">
-          DATA<span className="text-indigo-400"> EXTRACTOR</span>
-          <p className="text-[10px] text-slate-500 tracking-[0.3em] font-bold mt-1 uppercase">Admin</p>
+          SD<span className="text-indigo-400"> EXTRACTOR</span>
+          <p className="text-[10px] text-slate-500 tracking-[0.3em] font-bold mt-1 uppercase">Admin · by SD CodeHub</p>
         </div>
         
         <nav className="flex-1 p-6 space-y-2">
@@ -135,7 +135,7 @@ export default function AdminPanel() {
     <header className="flex justify-between items-end">
       <div>
         <h1 className="text-4xl font-black tracking-tight text-slate-900">System Metrics</h1>
-        <p className="text-slate-500 mt-1 text-lg">Real-time performance of Data Extractor Pro.</p>
+        <p className="text-slate-500 mt-1 text-lg">Real-time performance of SD Extractor.</p>
       </div>
       <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -193,7 +193,7 @@ export default function AdminPanel() {
           <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 text-center">
              <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Est. Annual Revenue</div>
              <div className="text-4xl font-black text-slate-900 italic">
-               ₹{((members.filter(m => m.plan === 'monthly').length * 499) + (members.filter(m => m.plan === 'yearly').length * 3999)).toLocaleString()}
+               ₹{((members.filter(m => m.plan === 'monthly').length * 199) + (members.filter(m => m.plan === 'yearly').length * 1699)).toLocaleString()}
              </div>
              <p className="text-[10px] text-indigo-500 font-bold mt-4 uppercase tracking-tighter">Gross Projection</p>
           </div>
@@ -292,7 +292,7 @@ export default function AdminPanel() {
                       {filteredMembers.map(m => {
                         const expired = m.expiry_date && new Date(m.expiry_date) < new Date();
                         return (
-                          <tr key={m.id} className="hover:bg-slate-50/50 transition">
+                          <tr key={m._id} className="hover:bg-slate-50/50 transition">
                             <td className="p-5">
                               <div className="font-bold text-slate-900">{m.name || 'N/A'}</div>
                               <div className="text-xs text-slate-400">{m.email}</div>
@@ -313,14 +313,14 @@ export default function AdminPanel() {
                             <td className="p-5">
                               <div className="flex justify-center gap-3">
                                 <button 
-                                  onClick={() => toggleStatus(m.id, !m.is_active)}
+                                  onClick={() => toggleStatus(m._id, !m.is_active)}
                                   className={`p-2 rounded-lg transition ${m.is_active ? 'text-rose-500 hover:bg-rose-50' : 'text-emerald-500 hover:bg-emerald-50'}`}
                                   title={m.is_active ? "Block User" : "Activate User"}
                                 >
                                   <FiPower size={18}/>
                                 </button>
                                 <button 
-                                  onClick={() => { if(confirm('Delete permanently?')) deleteMember(m.id); }}
+                                  onClick={() => { if(confirm('Delete permanently?')) deleteMember(m._id); }}
                                   className="p-2 text-slate-300 hover:text-rose-600 transition"
                                 >
                                   <FiTrash2 size={18}/>
@@ -350,8 +350,10 @@ export default function AdminPanel() {
                 <InputGroup label="Full Name" value={form.name} onChange={(v) => setForm({...form, name: v})} placeholder="Ex: Rahul Sharma" />
                 <InputGroup label="Mobile Number" value={form.mobile} onChange={(v) => setForm({...form, mobile: v})} placeholder="+91 98XXX XXX..." />
               </div>
-              <InputGroup label="Email Address" type="email" value={form.email} onChange={(v) => setForm({...form, email: v})} placeholder="user@kalkidigitals.com" />
-              
+              <InputGroup label="Email Address" type="email" value={form.email} onChange={(v) => setForm({...form, email: v})} placeholder="user@sdcodehub.com" />
+
+              <InputGroup label="Login Password" type="password" value={form.password} onChange={(v) => setForm({...form, password: v})} placeholder="Set a password for the user (min 6 chars)" />
+
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3 ml-1">Select Plan Duration</label>
                 <select 

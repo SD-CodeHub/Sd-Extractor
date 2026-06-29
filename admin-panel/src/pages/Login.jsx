@@ -1,32 +1,39 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FiLock, FiUser, FiArrowRight, FiShield } from 'react-icons/fi';
+import { adminLogin, saveAdminSession } from '../services/api';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simple hard-coded check
-    if (username === 'admin' && password === 'admin123') {
+    setLoading(true);
+    try {
+      const { data } = await adminLogin({ username, password });
+      saveAdminSession(data.token);
       navigate('/dashboard');
-    } else {
-      alert('Invalid credentials');
+    } catch (err) {
+      alert(err.response?.data?.error || 'Invalid credentials');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-slate-900 font-sans antialiased selection:bg-indigo-50">
-      
-      {/* Brand Logo - Matching Home Nav */}
-      <div className="mb-10 text-2xl font-black tracking-tighter cursor-pointer" onClick={() => navigate('/')}>
-        DATA<span className="text-indigo-600">EXTRACTOR</span>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 text-white font-sans antialiased px-4 py-10">
 
-      <div className="w-full max-w-md px-4">
-        <div className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
+      {/* Brand Logo - Matching Home Nav */}
+      <button onClick={() => navigate('/')} className="mb-10 text-2xl font-black tracking-tighter text-center">
+        SD<span className="text-indigo-400"> EXTRACTOR</span>
+        <span className="block text-[9px] font-bold tracking-[0.3em] text-slate-400 uppercase -mt-1">by SD CodeHub</span>
+      </button>
+
+      <div className="w-full max-w-md">
+        <div className="bg-white text-slate-900 p-10 rounded-[2rem] shadow-2xl shadow-black/40">
           
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold tracking-tight mb-3">Admin Access</h2>
@@ -70,9 +77,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center group"
+              disabled={loading}
+              className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold text-lg hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100 flex items-center justify-center group disabled:opacity-50"
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
               <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
@@ -85,9 +93,9 @@ export default function Login() {
 
         {/* Footer Link */}
         <div className="mt-8 text-center">
-          <button 
+          <button
             onClick={() => navigate('/')}
-            className="text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition uppercase tracking-widest"
+            className="text-[13px] font-bold text-slate-400 hover:text-indigo-300 transition uppercase tracking-widest"
           >
             ← Back to Home
           </button>
